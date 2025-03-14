@@ -19,8 +19,15 @@
 
     <main>
         <h1>Thanh Toán</h1>
-        <p>Cảm ơn bạn đã mua hàng!</p>
-        <button onclick="clearCart()">Xóa giỏ hàng</button>
+        <form id="checkout-form">
+            <label for="name">Họ và tên:</label>
+            <input type="text" id="name" required>
+            
+            <label for="address">Địa chỉ:</label>
+            <input type="text" id="address" required>
+            
+            <button type="submit">Xác nhận Thanh Toán</button>
+        </form>
     </main>
 </body>
 </html>
