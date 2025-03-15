@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Thanh Toán</title>
     <link rel="stylesheet" href="styles.css">
-    <script defer src="script.js"></script>
 </head>
 <body>
     <header>
@@ -20,14 +19,20 @@
     <main>
         <h1>Thanh Toán</h1>
         <form id="checkout-form">
-            <label for="name">Họ và tên:</label>
-            <input type="text" id="name" required>
+            <div class="form-group">
+                <label for="name">Họ và tên:</label>
+                <input type="text" id="name" required>
+            </div>
             
-            <label for="address">Địa chỉ:</label>
-            <input type="text" id="address" required>
+            <div class="form-group">
+                <label for="address">Địa chỉ:</label>
+                <input type="text" id="address" required>
+            </div>
             
             <button type="submit">Xác nhận Thanh Toán</button>
         </form>
     </main>
+
+    <script src="script.js"></script>
 </body>
 </html>
