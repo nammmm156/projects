@@ -1,3 +1,4 @@
+// Khởi tạo khi trang được load
 document.addEventListener("DOMContentLoaded", () => {
     updateCartCount();
     displayCart();
@@ -5,50 +6,58 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // Cập nhật số lượng sản phẩm trong giỏ hàng
 function updateCartCount() {
-    let cart = JSON.parse(localStorage.getItem("cart")) || [];
-    let totalCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+    const cart = JSON.parse(localStorage.getItem("cart")) || [];
+    const totalCount = cart.reduce((sum, item) => sum + item.quantity, 0);
     const cartCount = document.getElementById("cart-count");
     if (cartCount) {
         cartCount.textContent = totalCount;
     }
 }
 
+// Tính tổng tiền giỏ hàng
+function calculateTotal(cart) {
+    return cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+}
+
 // Hiển thị giỏ hàng
 function displayCart() {
-    let cart = JSON.parse(localStorage.getItem("cart")) || [];
+    const cart = JSON.parse(localStorage.getItem("cart")) || [];
     const cartContainer = document.getElementById("cart-items");
     const totalElement = document.getElementById("cart-total");
     
     if (!cartContainer || !totalElement) return;
 
     cartContainer.innerHTML = "";
-    let totalPrice = 0;
-
+    
     if (cart.length === 0) {
         cartContainer.innerHTML = "<p>Giỏ hàng của bạn đang trống!</p>";
-    } else {
-        cart.forEach((item) => {
-            let div = document.createElement("div");
-            div.className = "cart-item";
-            div.textContent = `${item.name} - ${item.quantity} x ${item.price.toLocaleString()}đ`;
-            cartContainer.appendChild(div);
-            totalPrice += item.price * item.quantity;
-        });
+        totalElement.textContent = "0đ";
+        return;
     }
 
+    // Hiển thị từng sản phẩm
+    cart.forEach((item) => {
+        const div = document.createElement("div");
+        div.className = "cart-item";
+        div.textContent = `${item.name} - ${item.quantity} x ${item.price.toLocaleString()}đ`;
+        cartContainer.appendChild(div);
+    });
+
+    // Hiển thị tổng tiền
+    const totalPrice = calculateTotal(cart);
     totalElement.textContent = totalPrice.toLocaleString() + "đ";
 }
 
 // Thêm sản phẩm vào giỏ hàng
 document.addEventListener("click", (event) => {
     if (event.target.classList.contains("add-to-cart")) {
-        let product = event.target.closest(".product");
-        let productId = product.dataset.id;
-        let productName = product.dataset.name;
-        let productPrice = parseInt(product.dataset.price);
+        const product = event.target.closest(".product");
+        const productId = product.dataset.id;
+        const productName = product.dataset.name;
+        const productPrice = parseInt(product.dataset.price);
         
         let cart = JSON.parse(localStorage.getItem("cart")) || [];
-        let existingItem = cart.find(item => item.id === productId);
+        const existingItem = cart.find(item => item.id === productId);
         
         if (existingItem) {
             existingItem.quantity++;
@@ -63,6 +72,7 @@ document.addEventListener("click", (event) => {
         
         localStorage.setItem("cart", JSON.stringify(cart));
         updateCartCount();
+        displayCart();
         alert("Đã thêm sản phẩm vào giỏ hàng!");
     }
 });
@@ -71,15 +81,14 @@ document.addEventListener("click", (event) => {
 function clearCart() {
     localStorage.removeItem("cart");
     updateCartCount();
-    const cartItems = document.getElementById("cart-items");
-    const cartTotal = document.getElementById("cart-total");
-    
-    if (cartItems) {
-        cartItems.innerHTML = "<p>Giỏ hàng của bạn đang trống.</p>";
-    }
-    if (cartTotal) {
-        cartTotal.textContent = "0đ";
-    }
+    displayCart();
+}
+
+// Lưu đơn hàng vào localStorage
+function saveOrder(orderData) {
+    const orderLog = JSON.parse(localStorage.getItem("order-log")) || [];
+    orderLog.push(orderData);
+    localStorage.setItem("order-log", JSON.stringify(orderLog));
 }
 
 // Xử lý thanh toán
@@ -95,7 +104,7 @@ async function handleCheckout() {
         return;
     }
 
-    let cart = JSON.parse(localStorage.getItem("cart")) || [];
+    const cart = JSON.parse(localStorage.getItem("cart")) || [];
     if (cart.length === 0) {
         alert("Giỏ hàng của bạn đang trống!");
         return;
@@ -103,7 +112,7 @@ async function handleCheckout() {
 
     try {
         // Gửi thông tin đến API
-        const response = await fetch('http://192.168.6.110:3000/api/submit-info', {
+        const response = await fetch('/api/submit-info', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -112,25 +121,22 @@ async function handleCheckout() {
                 name, 
                 address,
                 cart: cart,
-                totalAmount: cart.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+                totalAmount: calculateTotal(cart)
             })
         });
 
         const data = await response.json();
         if (data.success) {
-            // Lưu thông tin đơn hàng vào localStorage
-            let orderData = {
-                name: name,
-                address: address,
-                cart: cart,
+            // Lưu thông tin đơn hàng
+            const orderData = {
+                name,
+                address,
+                cart,
                 timestamp: new Date().toLocaleString(),
-                totalAmount: cart.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+                totalAmount: calculateTotal(cart)
             };
 
-            let orderLog = JSON.parse(localStorage.getItem("order-log")) || [];
-            orderLog.push(orderData);
-            localStorage.setItem("order-log", JSON.stringify(orderLog));
-
+            saveOrder(orderData);
             alert("Đặt hàng thành công!");
             checkoutForm.reset();
             clearCart();
@@ -143,8 +149,8 @@ async function handleCheckout() {
             alert('Có lỗi xảy ra: ' + data.error);
         }
     } catch (error) {
-        alert('Không thể kết nối đến server: ' + error.message);
         console.error('Lỗi:', error);
+        alert('Không thể kết nối đến server: ' + error.message);
     }
 }
 
