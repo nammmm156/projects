@@ -92,3 +92,24 @@ footer {
     background: #28a745;
     color: white;
 }
+
+.sort-container {
+    text-align: right;
+    margin-bottom: 20px;
+}
+
+.sort-button {
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    width: auto;
+    margin-top: 0;
+}
+
+.sort-button:hover {
+    background: #218838;
+}
