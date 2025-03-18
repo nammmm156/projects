@@ -2,6 +2,10 @@
 document.addEventListener("DOMContentLoaded", () => {
     updateCartCount();
     displayCart();
+    const sortButton = document.getElementById('sort-button');
+    if (sortButton) {
+        sortButton.addEventListener('click', sortProducts);
+    }
 });
 
 // Cập nhật số lượng sản phẩm trong giỏ hàng
@@ -161,3 +165,32 @@ document.addEventListener("submit", (event) => {
         handleCheckout();
     }
 });
+
+// Biến để theo dõi trạng thái sắp xếp
+let isAscending = true;
+
+// Hàm sắp xếp sản phẩm
+function sortProducts() {
+    const productList = document.querySelector('.product-list');
+    const products = Array.from(productList.children);
+    
+    // Sắp xếp mảng sản phẩm theo giá
+    products.sort((a, b) => {
+        const priceA = parseInt(a.dataset.price);
+        const priceB = parseInt(b.dataset.price);
+        return isAscending ? priceA - priceB : priceB - priceA;
+    });
+    
+    // Xóa tất cả sản phẩm hiện tại
+    products.forEach(product => product.remove());
+    
+    // Thêm lại sản phẩm đã sắp xếp
+    products.forEach(product => productList.appendChild(product));
+    
+    // Đảo ngược trạng thái sắp xếp
+    isAscending = !isAscending;
+    
+    // Cập nhật text của nút
+    const sortButton = document.getElementById('sort-button');
+    sortButton.textContent = isAscending ? 'Sắp xếp theo giá (cao đến thấp)' : 'Sắp xếp theo giá (thấp đến cao)';
+}
