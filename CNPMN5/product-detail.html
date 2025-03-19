@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chi Tiết Sản Phẩm</title>
+    <link rel="stylesheet" href="styles.css">
+    <script defer src="product-detail.js"></script>
+</head>
+<body>
+    <header>
+        <nav>
+            <ul>
+                <li><a href="index.html">Trang Chủ</a></li>
+                <li><a href="cart.html">Giỏ Hàng (<span id="cart-count">0</span>)</a></li>
+                <li><a href="checkout.html">Thanh Toán</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <div class="product-detail">
+            <div class="product-image">
+                <img id="product-image" src="" alt="">
+            </div>
+            <div class="product-info">
+                <h1 id="product-name"></h1>
+                <p id="product-price"></p>
+                <button class="add-to-cart">Thêm vào giỏ hàng</button>
+            </div>
+        </div>
+
+        <section class="reviews-section">
+            <h2>Đánh Giá Sản Phẩm</h2>
+            <div class="review-form">
+                <h3>Viết đánh giá của bạn</h3>
+                <div class="rating">
+                    <span>Đánh giá sao:</span>
+                    <div class="stars">
+                        <span class="star" data-rating="1">★</span>
+                        <span class="star" data-rating="2">★</span>
+                        <span class="star" data-rating="3">★</span>
+                        <span class="star" data-rating="4">★</span>
+                        <span class="star" data-rating="5">★</span>
+                    </div>
+                </div>
+                <textarea id="review-text" placeholder="Nhập đánh giá của bạn..."></textarea>
+                <button id="submit-review">Gửi đánh giá</button>
+            </div>
+            <div id="reviews-list" class="reviews-list">
+                <!-- Đánh giá sẽ được thêm vào đây -->
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>Chất lượng tạo nên thương hiệu.</p>
+        <p>&copy; 2025 Cửa Hàng Trực Tuyến Của Nhóm 5 CNPM Thầy Lâm Đức Dương.</p>
+    </footer>
+</body>
+</html> 
