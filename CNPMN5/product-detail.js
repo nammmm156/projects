@@ -6,17 +6,17 @@ const productId = urlParams.get('id');
 const products = {
     1: {
         name: "Áo Thun Mát Mẻ",
-        price: "200,000đ",
+        price: 200000,
         image: "images/ao-thun.jpg"
     },
     2: {
         name: "Quần Short Thoáng Mát",
-        price: "250,000đ",
+        price: 250000,
         image: "images/quan-short.jpg"
     },
     3: {
         name: "Kính Mát Thời Trang",
-        price: "300,000đ",
+        price: 300000,
         image: "images/kinh-mat.jpg"
     }
 };
@@ -27,9 +27,51 @@ function displayProduct() {
     if (product) {
         document.getElementById('product-image').src = product.image;
         document.getElementById('product-name').textContent = product.name;
-        document.getElementById('product-price').textContent = `Giá: ${product.price}`;
+        document.getElementById('product-price').textContent = `Giá: ${product.price.toLocaleString()}đ`;
+        
+        // Thêm data attributes cho container
+        const container = document.getElementById('product-container');
+        container.dataset.id = productId;
+        container.dataset.name = product.name;
+        container.dataset.price = product.price;
     }
 }
+
+// Cập nhật số lượng sản phẩm trong giỏ hàng
+function updateCartCount() {
+    const cart = JSON.parse(localStorage.getItem("cart")) || [];
+    const totalCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+    const cartCount = document.getElementById("cart-count");
+    if (cartCount) {
+        cartCount.textContent = totalCount;
+    }
+}
+
+// Xử lý thêm vào giỏ hàng
+document.getElementById('add-to-cart-btn').addEventListener('click', () => {
+    const container = document.getElementById('product-container');
+    const productId = container.dataset.id;
+    const productName = container.dataset.name;
+    const productPrice = parseInt(container.dataset.price);
+    
+    let cart = JSON.parse(localStorage.getItem("cart")) || [];
+    const existingItem = cart.find(item => item.id === productId);
+    
+    if (existingItem) {
+        existingItem.quantity++;
+    } else {
+        cart.push({
+            id: productId,
+            name: productName,
+            price: productPrice,
+            quantity: 1
+        });
+    }
+    
+    localStorage.setItem("cart", JSON.stringify(cart));
+    updateCartCount();
+    alert("Đã thêm sản phẩm vào giỏ hàng!");
+});
 
 // Xử lý đánh giá sao
 let selectedRating = 0;
@@ -91,5 +133,8 @@ document.getElementById('submit-review').addEventListener('click', () => {
 });
 
 // Khởi tạo trang
-displayProduct();
-displayReviews(); 
+document.addEventListener('DOMContentLoaded', () => {
+    displayProduct();
+    displayReviews();
+    updateCartCount();
+}); 
