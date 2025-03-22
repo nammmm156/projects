@@ -8,6 +8,19 @@ document.addEventListener("DOMContentLoaded", () => {
     if (sortButton) {
         sortButton.addEventListener('click', sortProducts);
     }
+    
+    // Khởi tạo chức năng tìm kiếm
+    const searchInput = document.getElementById('search-input');
+    if (searchInput) {
+        searchInput.addEventListener('input', handleSearch);
+        // Đóng gợi ý khi click ra ngoài
+        document.addEventListener('click', (e) => {
+            const suggestions = document.getElementById('search-suggestions');
+            if (suggestions && !searchInput.contains(e.target) && !suggestions.contains(e.target)) {
+                suggestions.classList.remove('active');
+            }
+        });
+    }
 });
 
 // Cập nhật số lượng sản phẩm trong giỏ hàng (hiển thị ở header)
@@ -220,3 +233,68 @@ function sortProducts() {
         sortButton.textContent = isAscending ? 'Sắp xếp theo giá (cao đến thấp)' : 'Sắp xếp theo giá (thấp đến cao)';
     }
 }
+
+// Xử lý tìm kiếm sản phẩm
+function handleSearch(event) {
+    const searchTerm = event.target.value.toLowerCase().trim();
+    const suggestions = document.getElementById('search-suggestions');
+    const products = document.querySelectorAll('.product');
+    
+    if (searchTerm.length < 2) {
+        suggestions.classList.remove('active');
+        return;
+    }
+    
+    const matchingProducts = Array.from(products).filter(product => {
+        const productName = product.dataset.name.toLowerCase();
+        return productName.includes(searchTerm);
+    });
+    
+    displaySuggestions(matchingProducts);
+}
+
+// Hiển thị gợi ý sản phẩm
+function displaySuggestions(products) {
+    const suggestions = document.getElementById('search-suggestions');
+    suggestions.innerHTML = '';
+    
+    if (products.length === 0) {
+        suggestions.innerHTML = '<div class="suggestion-item">Không tìm thấy sản phẩm</div>';
+    } else {
+        products.forEach(product => {
+            const suggestionItem = document.createElement('div');
+            suggestionItem.className = 'suggestion-item';
+            
+            const img = product.querySelector('img');
+            const name = product.dataset.name;
+            const price = product.dataset.price;
+            
+            suggestionItem.innerHTML = `
+                <img src="${img.src}" alt="${name}">
+                <div class="product-info">
+                    <div class="product-name">${name}</div>
+                    <div class="product-price">${parseInt(price).toLocaleString()}đ</div>
+                </div>
+            `;
+            
+            suggestionItem.addEventListener('click', () => {
+                window.location.href = `product-detail.html?id=${product.dataset.id}`;
+            });
+            
+            suggestions.appendChild(suggestionItem);
+        });
+    }
+    
+    suggestions.classList.add('active');
+}
+
+// Thêm vào cuối file
+document.querySelector('.login-btn')?.addEventListener('click', function() {
+    // Xử lý khi click nút đăng nhập
+    alert('Chức năng đăng nhập đang được phát triển');
+});
+
+document.querySelector('.register-btn')?.addEventListener('click', function() {
+    // Xử lý khi click nút đăng ký
+    alert('Chức năng đăng ký đang được phát triển');
+});
