@@ -79,7 +79,7 @@ async function displayReviews(filterRating = 'all') {
             : filteredReviews.map(review => `
                 <div class="review-item">
                     <div class="review-user">
-                        <img src="${review.userAvatar || 'images/default-avatar.png'}" alt="Avatar" class="user-avatar">
+                        <img src="images/lionel.jpg.png" alt="Avatar" class="user-avatar">
                         <div class="user-info">
                             <div class="username">${review.username || 'Người dùng ẩn danh'}</div>
                             <div class="review-date">${review.date}</div>
@@ -147,7 +147,7 @@ document.getElementById('submit-review')?.addEventListener('click', async () => 
             },
             body: JSON.stringify({
                 username: 'Người dùng ' + Math.floor(Math.random() * 1000), // Tạm thời tạo username ngẫu nhiên
-                userAvatar: 'images/default-avatar.png',
+                userAvatar: 'images/lionel.jpg.png',
                 rating: selectedRating,
                 text: reviewText,
                 date: new Date().toLocaleDateString('vi-VN'),
