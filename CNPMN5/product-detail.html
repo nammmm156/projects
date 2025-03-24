@@ -26,6 +26,12 @@
             <div class="product-info" id="product-container">
                 <h1 id="product-name"></h1>
                 <p id="product-price"></p>
+                <div class="rating-summary">
+                    <div class="average-rating">
+                        <span class="stars"></span>
+                        <span class="rating-count"></span>
+                    </div>
+                </div>
                 <button class="add-to-cart" id="add-to-cart-btn">Thêm vào giỏ hàng</button>
             </div>
         </div>
@@ -47,8 +53,22 @@
                 <textarea id="review-text" placeholder="Nhập đánh giá của bạn..."></textarea>
                 <button id="submit-review">Gửi đánh giá</button>
             </div>
-            <div id="reviews-list" class="reviews-list">
-                <!-- Đánh giá sẽ được thêm vào đây -->
+
+            <div class="reviews-list-container">
+                <h3>Tất cả đánh giá</h3>
+                <div class="reviews-filter">
+                    <select id="rating-filter">
+                        <option value="all">Tất cả sao</option>
+                        <option value="5">5 sao</option>
+                        <option value="4">4 sao</option>
+                        <option value="3">3 sao</option>
+                        <option value="2">2 sao</option>
+                        <option value="1">1 sao</option>
+                    </select>
+                </div>
+                <div id="reviews-list" class="reviews-list">
+                    <!-- Đánh giá sẽ được thêm vào đây -->
+                </div>
             </div>
         </section>
     </main>

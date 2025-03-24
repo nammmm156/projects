@@ -22,7 +22,7 @@ const products = {
 };
 
 // Hiển thị thông tin sản phẩm
-function displayProduct() {
+async function displayProduct() {
     const product = products[productId];
     if (product) {
         document.getElementById('product-image').src = product.image;
@@ -34,8 +34,145 @@ function displayProduct() {
         container.dataset.id = productId;
         container.dataset.name = product.name;
         container.dataset.price = product.price;
+
+        // Hiển thị đánh giá trung bình
+        await displayAverageRating();
     }
 }
+
+// Hiển thị đánh giá trung bình
+async function displayAverageRating() {
+    try {
+        const response = await fetch(`http://192.168.6.110:3000/api/reviews/${productId}`);
+        const reviews = await response.json();
+        
+        const averageRating = reviews.length > 0 
+            ? reviews.reduce((acc, review) => acc + review.rating, 0) / reviews.length 
+            : 0;
+        
+        const starsElement = document.querySelector('.rating-summary .stars');
+        const ratingCountElement = document.querySelector('.rating-summary .rating-count');
+        
+        if (starsElement && ratingCountElement) {
+            starsElement.textContent = '★'.repeat(Math.round(averageRating)) + '☆'.repeat(5 - Math.round(averageRating));
+            ratingCountElement.textContent = `(${reviews.length} đánh giá)`;
+        }
+    } catch (error) {
+        console.error('Lỗi khi lấy đánh giá:', error);
+    }
+}
+
+// Hiển thị danh sách đánh giá
+async function displayReviews(filterRating = 'all') {
+    try {
+        const response = await fetch(`http://192.168.6.110:3000/api/reviews/${productId}`);
+        const reviews = await response.json();
+        const reviewsList = document.getElementById('reviews-list');
+        
+        // Lọc đánh giá theo số sao nếu có
+        const filteredReviews = filterRating === 'all' 
+            ? reviews 
+            : reviews.filter(review => review.rating === parseInt(filterRating));
+        
+        reviewsList.innerHTML = filteredReviews.length === 0 
+            ? '<p>Chưa có đánh giá nào.</p>'
+            : filteredReviews.map(review => `
+                <div class="review-item">
+                    <div class="review-user">
+                        <img src="${review.userAvatar || 'images/default-avatar.png'}" alt="Avatar" class="user-avatar">
+                        <div class="user-info">
+                            <div class="username">${review.username || 'Người dùng ẩn danh'}</div>
+                            <div class="review-date">${review.date}</div>
+                        </div>
+                    </div>
+                    <div class="review-details">
+                        <div class="review-rating">
+                            ${'★'.repeat(review.rating)}${'☆'.repeat(5-review.rating)}
+                        </div>
+                        <div class="product-variation">
+                            Phân loại hàng: ${review.variation || 'Mặc định'}
+                        </div>
+                        <div class="review-content">${review.text}</div>
+                        ${review.images ? `
+                            <div class="review-images">
+                                ${review.images.map(img => `
+                                    <img src="${img}" alt="Ảnh đánh giá" class="review-image">
+                                `).join('')}
+                            </div>
+                        ` : ''}
+                    </div>
+                    <div class="review-response">
+                        <div class="seller-response">
+                            <strong>Phản hồi của người bán:</strong>
+                            <p>Cảm ơn bạn đã mua hàng và đánh giá sản phẩm. Chúng tôi rất vui khi bạn hài lòng với sản phẩm!</p>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+    } catch (error) {
+        console.error('Lỗi khi lấy danh sách đánh giá:', error);
+    }
+}
+
+// Xử lý đánh giá sao
+let selectedRating = 0;
+const stars = document.querySelectorAll('.star');
+
+stars.forEach(star => {
+    star.addEventListener('click', () => {
+        selectedRating = parseInt(star.dataset.rating);
+        stars.forEach(s => {
+            s.style.color = parseInt(s.dataset.rating) <= selectedRating ? 'gold' : 'gray';
+        });
+    });
+});
+
+// Xử lý gửi đánh giá
+document.getElementById('submit-review')?.addEventListener('click', async () => {
+    const reviewText = document.getElementById('review-text').value.trim();
+    if (selectedRating === 0) {
+        alert('Vui lòng chọn số sao đánh giá!');
+        return;
+    }
+    if (!reviewText) {
+        alert('Vui lòng nhập nội dung đánh giá!');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`http://192.168.6.110:3000/api/reviews/${productId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                username: 'Người dùng ' + Math.floor(Math.random() * 1000), // Tạm thời tạo username ngẫu nhiên
+                userAvatar: 'images/default-avatar.png',
+                rating: selectedRating,
+                text: reviewText,
+                date: new Date().toLocaleDateString('vi-VN'),
+                variation: document.querySelector('.product-variation-select')?.value || 'Mặc định'
+            })
+        });
+        
+        if (response.ok) {
+            alert('Cảm ơn bạn đã đánh giá sản phẩm!');
+            document.getElementById('review-text').value = '';
+            selectedRating = 0;
+            stars.forEach(star => star.style.color = 'gray');
+            await displayAverageRating();
+            await displayReviews();
+        }
+    } catch (error) {
+        console.error('Lỗi khi gửi đánh giá:', error);
+        alert('Không thể gửi đánh giá: ' + error.message);
+    }
+});
+
+// Xử lý lọc đánh giá
+document.getElementById('rating-filter')?.addEventListener('change', (e) => {
+    displayReviews(e.target.value);
+});
 
 // Cập nhật số lượng sản phẩm trong giỏ hàng
 function updateCartCount() {
@@ -71,65 +208,6 @@ document.getElementById('add-to-cart-btn').addEventListener('click', () => {
     localStorage.setItem("cart", JSON.stringify(cart));
     updateCartCount();
     alert("Đã thêm sản phẩm vào giỏ hàng!");
-});
-
-// Xử lý đánh giá sao
-let selectedRating = 0;
-const stars = document.querySelectorAll('.star');
-
-stars.forEach(star => {
-    star.addEventListener('click', () => {
-        selectedRating = parseInt(star.dataset.rating);
-        stars.forEach(s => {
-            s.style.color = parseInt(s.dataset.rating) <= selectedRating ? 'gold' : 'gray';
-        });
-    });
-});
-
-// Lưu đánh giá vào localStorage
-function saveReview(rating, text) {
-    const reviews = JSON.parse(localStorage.getItem(`reviews_${productId}`) || '[]');
-    reviews.push({
-        rating,
-        text,
-        date: new Date().toLocaleDateString('vi-VN')
-    });
-    localStorage.setItem(`reviews_${productId}`, JSON.stringify(reviews));
-    displayReviews();
-}
-
-// Hiển thị đánh giá
-function displayReviews() {
-    const reviewsList = document.getElementById('reviews-list');
-    const reviews = JSON.parse(localStorage.getItem(`reviews_${productId}`) || '[]');
-    
-    reviewsList.innerHTML = reviews.map(review => `
-        <div class="review-item">
-            <div class="review-rating">
-                ${'★'.repeat(review.rating)}${'☆'.repeat(5-review.rating)}
-            </div>
-            <p class="review-text">${review.text}</p>
-            <p class="review-date">${review.date}</p>
-        </div>
-    `).join('');
-}
-
-// Xử lý gửi đánh giá
-document.getElementById('submit-review').addEventListener('click', () => {
-    const reviewText = document.getElementById('review-text').value.trim();
-    if (selectedRating === 0) {
-        alert('Vui lòng chọn số sao đánh giá!');
-        return;
-    }
-    if (!reviewText) {
-        alert('Vui lòng nhập nội dung đánh giá!');
-        return;
-    }
-    
-    saveReview(selectedRating, reviewText);
-    document.getElementById('review-text').value = '';
-    selectedRating = 0;
-    stars.forEach(star => star.style.color = 'gray');
 });
 
 // Khởi tạo trang

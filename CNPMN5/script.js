@@ -4,6 +4,7 @@
 document.addEventListener("DOMContentLoaded", () => {
     updateCartCount();
     displayCart();
+    displayProductRatings();
     const sortButton = document.getElementById('sort-button');
     if (sortButton) {
         sortButton.addEventListener('click', sortProducts);
@@ -154,7 +155,7 @@ async function handleCheckout() {
     
     try {
         // Gửi thông tin đơn hàng đến API
-        const response = await fetch('/api/submit-info', {
+        const response = await fetch('http://192.168.6.110:3000/api/submit-info', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -298,3 +299,63 @@ document.querySelector('.register-btn')?.addEventListener('click', function() {
     // Xử lý khi click nút đăng ký
     alert('Chức năng đăng ký đang được phát triển');
 });
+
+// Hàm tính điểm đánh giá trung bình cho một sản phẩm
+async function calculateAverageRating(productId) {
+    try {
+        const response = await fetch(`http://192.168.6.110:3000/api/reviews/${productId}`);
+        const reviews = await response.json();
+        if (reviews.length === 0) return 0;
+        const sum = reviews.reduce((acc, review) => acc + review.rating, 0);
+        return (sum / reviews.length).toFixed(1);
+    } catch (error) {
+        console.error('Lỗi khi lấy đánh giá:', error);
+        return 0;
+    }
+}
+
+// Hàm hiển thị đánh giá trung bình cho tất cả sản phẩm
+async function displayProductRatings() {
+    const products = document.querySelectorAll('.product');
+    for (const product of products) {
+        const productId = product.dataset.id;
+        const averageRating = await calculateAverageRating(productId);
+        const response = await fetch(`http://192.168.6.110:3000/api/reviews/${productId}`);
+        const reviews = await response.json();
+        const ratingCount = reviews.length;
+        
+        const starsElement = product.querySelector('.average-rating .stars');
+        const ratingCountElement = product.querySelector('.rating-count');
+        
+        if (starsElement && ratingCountElement) {
+            starsElement.textContent = '★'.repeat(Math.round(parseFloat(averageRating))) + '☆'.repeat(5 - Math.round(parseFloat(averageRating)));
+            ratingCountElement.textContent = `(${ratingCount} đánh giá)`;
+        }
+    }
+}
+
+// Hàm lưu đánh giá mới
+async function saveReview(productId, rating, text) {
+    try {
+        const response = await fetch(`http://192.168.6.110:3000/api/reviews/${productId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                rating,
+                text,
+                date: new Date().toLocaleDateString('vi-VN')
+            })
+        });
+        
+        if (response.ok) {
+            await displayProductRatings(); // Cập nhật hiển thị đánh giá
+            return true;
+        }
+        return false;
+    } catch (error) {
+        console.error('Lỗi khi lưu đánh giá:', error);
+        return false;
+    }
+}

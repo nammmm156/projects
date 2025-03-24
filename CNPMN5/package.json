@@ -1,7 +1,7 @@
 {
-    "name": "simple-checkout-api",
+    "name": "shop-reviews",
     "version": "1.0.0",
-    "description": "API đơn giản để lưu thông tin người dùng",
+    "description": "Hệ thống đánh giá sản phẩm",
     "main": "server.js",
     "scripts": {
       "start": "node server.js"
