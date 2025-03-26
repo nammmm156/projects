@@ -154,31 +154,32 @@ async function handleCheckout() {
     }
     
     try {
+        const orderData = {
+            name,
+            address,
+            cart: cart.map(item => ({
+                id: item.id,
+                name: item.name,
+                price: item.price,
+                quantity: item.quantity
+            })),
+            totalAmount: calculateTotal(cart),
+            orderDate: new Date().toISOString(),
+            status: 'Đang xử lý'
+        };
+
         // Gửi thông tin đơn hàng đến API
-        const response = await fetch('http://192.168.6.110:3000/api/submit-info', {
+        const response = await fetch('/api/submit-info', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ 
-                name, 
-                address,
-                cart: cart,
-                totalAmount: calculateTotal(cart)
-            })
+            body: JSON.stringify(orderData)
         });
         
         const data = await response.json();
         if (data.success) {
-            // Tạo đối tượng đơn hàng chi tiết
-            const orderData = {
-                name,
-                address,
-                cart,
-                timestamp: new Date().toLocaleString(),
-                totalAmount: calculateTotal(cart)
-            };
-            
+            // Lưu đơn hàng vào localStorage
             saveOrder(orderData);
             alert("Đặt hàng thành công!");
             checkoutForm.reset();
@@ -303,7 +304,7 @@ document.querySelector('.register-btn')?.addEventListener('click', function() {
 // Hàm tính điểm đánh giá trung bình cho một sản phẩm
 async function calculateAverageRating(productId) {
     try {
-        const response = await fetch(`http://192.168.6.110:3000/api/reviews/${productId}`);
+        const response = await fetch(`/api/reviews/${productId}`);
         const reviews = await response.json();
         if (reviews.length === 0) return 0;
         const sum = reviews.reduce((acc, review) => acc + review.rating, 0);
@@ -320,7 +321,7 @@ async function displayProductRatings() {
     for (const product of products) {
         const productId = product.dataset.id;
         const averageRating = await calculateAverageRating(productId);
-        const response = await fetch(`http://192.168.6.110:3000/api/reviews/${productId}`);
+        const response = await fetch(`/api/reviews/${productId}`);
         const reviews = await response.json();
         const ratingCount = reviews.length;
         
@@ -337,7 +338,7 @@ async function displayProductRatings() {
 // Hàm lưu đánh giá mới
 async function saveReview(productId, rating, text) {
     try {
-        const response = await fetch(`http://192.168.6.110:3000/api/reviews/${productId}`, {
+        const response = await fetch(`/api/reviews/${productId}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

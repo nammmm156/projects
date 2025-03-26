@@ -18,6 +18,16 @@ const products = {
         name: "Kính Mát Thời Trang",
         price: 300000,
         image: "images/kinh-mat.jpg"
+    },
+    4: {
+        name: "Sách dạy làm giàu",
+        price: 1000000,
+        image: "images/lamgiau.png"
+    },
+    5: {
+        name: "Sách dạy kinh doanh online",
+        price: 2000000,
+        image: "images/online.png"
     }
 };
 
@@ -43,7 +53,7 @@ async function displayProduct() {
 // Hiển thị đánh giá trung bình
 async function displayAverageRating() {
     try {
-        const response = await fetch(`http://192.168.6.110:3000/api/reviews/${productId}`);
+        const response = await fetch(`/api/reviews/${productId}`);
         const reviews = await response.json();
         
         const averageRating = reviews.length > 0 
@@ -65,7 +75,7 @@ async function displayAverageRating() {
 // Hiển thị danh sách đánh giá
 async function displayReviews(filterRating = 'all') {
     try {
-        const response = await fetch(`http://192.168.6.110:3000/api/reviews/${productId}`);
+        const response = await fetch(`/api/reviews/${productId}`);
         const reviews = await response.json();
         const reviewsList = document.getElementById('reviews-list');
         
@@ -140,7 +150,7 @@ document.getElementById('submit-review')?.addEventListener('click', async () => 
     }
     
     try {
-        const response = await fetch(`http://192.168.6.110:3000/api/reviews/${productId}`, {
+        const response = await fetch(`/api/reviews/${productId}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

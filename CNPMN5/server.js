@@ -9,9 +9,15 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
 
-// Lưu trữ đánh giá trong file (trong thực tế nên dùng database)
-const REVIEWS_FILE = path.join(__dirname, 'reviews.json');
-const ORDERS_FILE = path.join(__dirname, 'orders.json');
+// Tạo thư mục log nếu chưa tồn tại
+const LOG_DIR = path.join(__dirname, 'projects', 'log');
+if (!fs.existsSync(LOG_DIR)) {
+    fs.mkdirSync(LOG_DIR, { recursive: true });
+}
+
+// Lưu trữ đánh giá và đơn hàng trong thư mục log
+const REVIEWS_FILE = path.join(LOG_DIR, 'reviews.json');
+const ORDERS_FILE = path.join(LOG_DIR, 'orders.json');
 
 // Đảm bảo file tồn tại
 if (!fs.existsSync(REVIEWS_FILE)) {
@@ -79,25 +85,38 @@ app.post('/api/submit-info', (req, res) => {
     const orderData = req.body;
     
     try {
+        // Đảm bảo file tồn tại
+        if (!fs.existsSync(ORDERS_FILE)) {
+            fs.writeFileSync(ORDERS_FILE, '[]');
+        }
+
         // Đọc đơn hàng hiện có
         let orders = [];
         try {
-            orders = JSON.parse(fs.readFileSync(ORDERS_FILE, 'utf8'));
+            const fileContent = fs.readFileSync(ORDERS_FILE, 'utf8');
+            orders = fileContent ? JSON.parse(fileContent) : [];
         } catch (error) {
             console.error('Lỗi khi đọc file orders:', error);
+            orders = [];
         }
         
         // Thêm đơn hàng mới
-        orders.push({
+        const newOrder = {
             ...orderData,
-            id: Date.now(),
-            timestamp: new Date().toISOString()
-        });
+            orderId: Date.now().toString(),
+            orderDate: new Date().toISOString(),
+            status: 'Đang xử lý'
+        };
+        orders.push(newOrder);
         
         // Lưu lại vào file
         fs.writeFileSync(ORDERS_FILE, JSON.stringify(orders, null, 2));
         
-        res.json({ success: true });
+        // Log ra console để debug
+        console.log('Đã lưu đơn hàng mới:', newOrder);
+        console.log('Đường dẫn file:', ORDERS_FILE);
+        
+        res.json({ success: true, orderId: newOrder.orderId });
     } catch (error) {
         console.error('Lỗi khi xử lý đơn hàng:', error);
         res.status(500).json({ success: false, error: 'Lỗi khi xử lý đơn hàng' });
@@ -107,4 +126,5 @@ app.post('/api/submit-info', (req, res) => {
 const port = 3000;
 app.listen(port, '0.0.0.0', () => {
     console.log(`Server đang chạy tại http://0.0.0.0:${port}`);
+    console.log('Thư mục log:', LOG_DIR);
 });
