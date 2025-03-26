@@ -22,6 +22,15 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     }
+
+    // Xử lý hiển thị ảnh chuyển khoản
+    const paymentMethod = document.getElementById('payment-method');
+    const bankTransferInfo = document.getElementById('bank-transfer-info');
+    if (paymentMethod && bankTransferInfo) {
+        paymentMethod.addEventListener('change', () => {
+            bankTransferInfo.style.display = paymentMethod.value === 'bank' ? 'block' : 'none';
+        });
+    }
 });
 
 // Cập nhật số lượng sản phẩm trong giỏ hàng (hiển thị ở header)
@@ -44,14 +53,16 @@ function displayCart() {
     const cart = JSON.parse(localStorage.getItem("cart")) || [];
     const cartContainer = document.getElementById("cart-items");
     const totalElement = document.getElementById("cart-total");
+    const checkoutTotalElement = document.getElementById("total-amount");
     
-    if (!cartContainer || !totalElement) return;
+    if (!cartContainer) return;
     
     cartContainer.innerHTML = "";
     
     if (cart.length === 0) {
         cartContainer.innerHTML = "<p>Giỏ hàng của bạn đang trống!</p>";
-        totalElement.textContent = "0đ";
+        if (totalElement) totalElement.textContent = "0đ";
+        if (checkoutTotalElement) checkoutTotalElement.textContent = "0đ";
         return;
     }
     
@@ -65,21 +76,24 @@ function displayCart() {
         itemInfo.textContent = `${item.name} - ${item.quantity} x ${item.price.toLocaleString()}đ`;
         div.appendChild(itemInfo);
         
-        // Nút "Xóa" cho từng sản phẩm
-        const deleteButton = document.createElement("button");
-        deleteButton.textContent = "Xóa";
-        deleteButton.style.marginLeft = "10px";
-        deleteButton.addEventListener("click", () => {
-            removeItem(item.id);
-        });
-        div.appendChild(deleteButton);
+        // Nút "Xóa" cho từng sản phẩm (chỉ hiển thị trong trang giỏ hàng)
+        if (!window.location.pathname.includes('checkout.html')) {
+            const deleteButton = document.createElement("button");
+            deleteButton.textContent = "Xóa";
+            deleteButton.style.marginLeft = "10px";
+            deleteButton.addEventListener("click", () => {
+                removeItem(item.id);
+            });
+            div.appendChild(deleteButton);
+        }
         
         cartContainer.appendChild(div);
     });
     
     // Hiển thị tổng tiền
     const totalPrice = calculateTotal(cart);
-    totalElement.textContent = totalPrice.toLocaleString() + "đ";
+    if (totalElement) totalElement.textContent = totalPrice.toLocaleString() + "đ";
+    if (checkoutTotalElement) checkoutTotalElement.textContent = totalPrice.toLocaleString() + "đ";
 }
 
 // Hàm xóa một sản phẩm khỏi giỏ hàng dựa trên id sản phẩm
@@ -140,10 +154,14 @@ async function handleCheckout() {
     if (!checkoutForm) return;
     
     const name = document.getElementById('name').value;
+    const email = document.getElementById('email').value;
+    const phone = document.getElementById('phone').value;
     const address = document.getElementById('address').value;
+    const paymentMethod = document.getElementById('payment-method').value;
+    const note = document.getElementById('note').value;
     
-    if (!name || !address) {
-        alert("Vui lòng điền đầy đủ thông tin!");
+    if (!name || !email || !phone || !address || !paymentMethod) {
+        alert("Vui lòng điền đầy đủ thông tin bắt buộc!");
         return;
     }
     
@@ -156,7 +174,11 @@ async function handleCheckout() {
     try {
         const orderData = {
             name,
+            email,
+            phone,
             address,
+            paymentMethod,
+            note,
             cart: cart.map(item => ({
                 id: item.id,
                 name: item.name,
@@ -165,7 +187,7 @@ async function handleCheckout() {
             })),
             totalAmount: calculateTotal(cart),
             orderDate: new Date().toISOString(),
-            status: 'Đang xử lý'
+            status: paymentMethod === 'bank' ? 'Chờ thanh toán' : 'Đang xử lý'
         };
 
         // Gửi thông tin đơn hàng đến API
@@ -181,7 +203,13 @@ async function handleCheckout() {
         if (data.success) {
             // Lưu đơn hàng vào localStorage
             saveOrder(orderData);
-            alert("Đặt hàng thành công!");
+            
+            if (paymentMethod === 'bank') {
+                alert("Đặt hàng thành công! Vui lòng chuyển khoản theo thông tin trên và chờ xác nhận từ chúng tôi.");
+            } else {
+                alert("Đặt hàng thành công! Cảm ơn bạn đã mua hàng.");
+            }
+            
             checkoutForm.reset();
             clearCart();
             
