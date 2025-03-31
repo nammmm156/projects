@@ -388,3 +388,104 @@ async function saveReview(productId, rating, text) {
         return false;
     }
 }
+
+// Hàm lưu sản phẩm đã xem
+function addToRecentlyViewed(product) {
+    let recentlyViewed = JSON.parse(localStorage.getItem('recentlyViewed')) || [];
+    
+    // Kiểm tra xem sản phẩm đã tồn tại chưa
+    const existingIndex = recentlyViewed.findIndex(item => item.id === product.id);
+    if (existingIndex !== -1) {
+        // Nếu sản phẩm đã tồn tại, xóa nó khỏi vị trí cũ
+        recentlyViewed.splice(existingIndex, 1);
+    }
+    
+    // Thêm sản phẩm vào đầu danh sách
+    recentlyViewed.unshift(product);
+    
+    // Giới hạn số lượng sản phẩm đã xem (ví dụ: 6 sản phẩm)
+    if (recentlyViewed.length > 6) {
+        recentlyViewed = recentlyViewed.slice(0, 6);
+    }
+    
+    localStorage.setItem('recentlyViewed', JSON.stringify(recentlyViewed));
+    displayRecentlyViewed();
+}
+
+// Hàm hiển thị sản phẩm đã xem
+function displayRecentlyViewed() {
+    const recentlyViewedContainer = document.getElementById('recently-viewed-products');
+    if (!recentlyViewedContainer) return;
+
+    const recentlyViewed = JSON.parse(localStorage.getItem('recentlyViewed')) || [];
+    
+    if (recentlyViewed.length === 0) {
+        recentlyViewedContainer.innerHTML = '<p class="no-products">Chưa có sản phẩm nào được xem gần đây</p>';
+        return;
+    }
+
+    recentlyViewedContainer.innerHTML = recentlyViewed.map(product => `
+        <div class="product" data-id="${product.id}">
+            <a href="product-detail.html?id=${product.id}" class="product-link">
+                <img src="${product.image}" alt="${product.name}">
+                <h3>${product.name}</h3>
+                <p class="price">Giá: ${product.price.toLocaleString('vi-VN')}đ</p>
+            </a>
+            <button class="add-to-cart" onclick="addToCart(${product.id})">Thêm vào giỏ</button>
+        </div>
+    `).join('');
+}
+
+// Thêm sự kiện click cho sản phẩm
+document.addEventListener('DOMContentLoaded', function() {
+    // Hiển thị sản phẩm đã xem khi trang được tải
+    displayRecentlyViewed();
+
+    // Thêm sự kiện click cho tất cả links sản phẩm
+    document.querySelectorAll('.product-link').forEach(productLink => {
+        productLink.addEventListener('click', function(e) {
+            const product = this.closest('.product');
+            const productId = product.dataset.id;
+            const productName = product.dataset.name;
+            const productPrice = parseInt(product.dataset.price);
+            const productImage = product.querySelector('img').src;
+            
+            const productData = {
+                id: productId,
+                name: productName,
+                price: productPrice,
+                image: productImage
+            };
+            
+            addToRecentlyViewed(productData);
+        });
+    });
+});
+
+// Thêm hàm addToCart cho sản phẩm đã xem
+function addToCart(productId) {
+    const product = document.querySelector(`.product[data-id="${productId}"]`);
+    if (!product) return;
+
+    const productName = product.querySelector('h3').textContent;
+    const productPrice = parseInt(product.querySelector('.price').textContent.replace(/[^\d]/g, ''));
+    
+    let cart = JSON.parse(localStorage.getItem("cart")) || [];
+    const existingItem = cart.find(item => item.id === productId);
+    
+    if (existingItem) {
+        existingItem.quantity++;
+    } else {
+        cart.push({ 
+            id: productId, 
+            name: productName, 
+            price: productPrice, 
+            quantity: 1 
+        });
+    }
+    
+    localStorage.setItem("cart", JSON.stringify(cart));
+    updateCartCount();
+    displayCart();
+    alert("Đã thêm sản phẩm vào giỏ hàng!");
+}
