@@ -105,7 +105,8 @@ app.post('/api/submit-info', (req, res) => {
             ...orderData,
             orderId: Date.now().toString(),
             orderDate: new Date().toISOString(),
-            status: 'Đang xử lý'
+            status: 'Đang xử lý',
+            paymentStatus: 'Chờ thanh toán'
         };
         orders.push(newOrder);
         
@@ -116,10 +117,18 @@ app.post('/api/submit-info', (req, res) => {
         console.log('Đã lưu đơn hàng mới:', newOrder);
         console.log('Đường dẫn file:', ORDERS_FILE);
         
-        res.json({ success: true, orderId: newOrder.orderId });
+        res.json({ 
+            success: true, 
+            orderId: newOrder.orderId,
+            message: 'Đơn hàng đã được tiếp nhận thành công'
+        });
     } catch (error) {
         console.error('Lỗi khi xử lý đơn hàng:', error);
-        res.status(500).json({ success: false, error: 'Lỗi khi xử lý đơn hàng' });
+        res.status(500).json({ 
+            success: false, 
+            error: 'Lỗi khi xử lý đơn hàng',
+            details: error.message 
+        });
     }
 });
 

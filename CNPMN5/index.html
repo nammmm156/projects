@@ -14,10 +14,6 @@
                 <li><a href="index.html">Trang Chủ</a></li>
                 <li><a href="cart.html">Giỏ Hàng (<span id="cart-count">0</span>)</a></li>
                 <li><a href="checkout.html">Thanh Toán</a></li>
-                <div class="auth-buttons">
-                    <button class="login-btn">Đăng nhập</button>
-                    <button class="register-btn">Đăng ký</button>
-                </div>
             </ul>
         </nav>
     </header>
@@ -115,9 +111,30 @@
         </section>
     </main>
 
-    <footer>
-        <p>Chất lượng tạo nên thương hiệu.</p>
-        <p>&copy; 2025 Cửa Hàng Trực Tuyến Của Nhóm 5 CNPM Thầy Lâm Đức Dương.</p>
+    <!-- Thêm phần sản phẩm đã xem gần đây -->
+    <section class="recently-viewed">
+        <h2>Sản phẩm đã xem gần đây</h2>
+        <div id="recently-viewed-products" class="product-grid">
+            <!-- Sản phẩm đã xem sẽ được thêm vào đây bằng JavaScript -->
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="contact-info">
+                <h3>Liên hệ</h3>
+                <p>Mọi chi tiết xin liên hệ: <a href="tel:0962681746">0962681746</a></p>
+            </div>
+            <div class="footer-links">
+                <a href="index.html">Trang chủ</a>
+                <a href="cart.html">Giỏ hàng</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 Shop Online. All rights reserved.</p>
+        </div>
     </footer>
+
+    <script src="script.js"></script>
 </body>
 </html>
