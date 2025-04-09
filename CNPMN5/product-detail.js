@@ -28,6 +28,41 @@ const products = {
         name: "Sách dạy kinh doanh online",
         price: 2000000,
         image: "images/online.png"
+    },
+    6: {
+        name: "Cặp Sách Thời Trang",
+        price: 350000,
+        image: "images/capsach.jpg"
+    },
+    7: {
+        name: "Mũ Thời Trang",
+        price: 150000,
+        image: "images/mu.png"
+    },
+    8: {
+        name: "Quạt Mini Tiện Lợi",
+        price: 200000,
+        image: "images/quat.png"
+    },
+    9: {
+        name: "Móc Khóa Xinh Xắn",
+        price: 50000,
+        image: "images/mockhoa.png"
+    },
+    10: {
+        name: "Thắt Lưng Da Cao Cấp",
+        price: 450000,
+        image: "images/thatlung.png"
+    },
+    11: {
+        name: "Đồng Hồ Thông Minh",
+        price: 1500000,
+        image: "images/dongho.png"
+    },
+    12: {
+        name: "Ghế Gaming Cao Cấp",
+        price: 3500000,
+        image: "images/ghe.png"
     }
 };
 
