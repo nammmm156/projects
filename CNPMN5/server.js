@@ -7,7 +7,9 @@ const app = express();
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.static('.'));
+
+// Serve static files from public directory
+app.use(express.static('public'));
 
 // Tạo thư mục log nếu chưa tồn tại
 const LOG_DIR = path.join(__dirname, 'projects', 'log');
@@ -80,6 +82,35 @@ app.get('/api/reviews', (req, res) => {
     res.json(reviews);
 });
 
+// Danh sách sản phẩm mẫu
+const products = [
+    { id: 1, name: "Áo Thun Mát Mẻ", price: 200000, image: "images/ao-thun.jpg" },
+    { id: 2, name: "Quần Short Thoáng Mát", price: 250000, image: "images/quan-short.jpg" },
+    { id: 3, name: "Kính Mát Thời Trang", price: 300000, image: "images/kinh-mat.jpg" },
+    { id: 4, name: "Sách dạy làm giàu", price: 1000000, image: "images/lamgiau.png" },
+    { id: 5, name: "Sách dạy kinh doanh online", price: 2000000, image: "images/online.png" },
+    { id: 6, name: "Cặp Sách Thời Trang", price: 350000, image: "images/capsach.jpg" },
+    { id: 7, name: "Mũ Thời Trang", price: 150000, image: "images/mu.png" },
+    { id: 8, name: "Quạt Mini Tiện Lợi", price: 200000, image: "images/quat.png" },
+    { id: 9, name: "Móc Khóa Xinh Xắn", price: 50000, image: "images/mockhoa.png" },
+    { id: 10, name: "Thắt Lưng Da Cao Cấp", price: 450000, image: "images/thatlung.png" },
+    { id: 11, name: "Đồng Hồ Thông Minh", price: 1500000, image: "images/dongho.png" },
+    { id: 12, name: "Ghế Gaming Cao Cấp", price: 3500000, image: "images/ghe.png" }
+];
+
+// API tìm kiếm sản phẩm
+app.get('/api/search', (req, res) => {
+    const query = req.query.q?.toLowerCase() || '';
+    if (!query) {
+        return res.json([]);
+    }
+
+    const results = products.filter(product => 
+        product.name.toLowerCase().includes(query)
+    );
+    res.json(results);
+});
+
 // API xử lý đơn hàng
 app.post('/api/submit-info', (req, res) => {
     const orderData = req.body;
@@ -130,6 +161,34 @@ app.post('/api/submit-info', (req, res) => {
             details: error.message 
         });
     }
+});
+
+// API lấy chi tiết sản phẩm
+app.get('/api/products/:id', (req, res) => {
+    const productId = parseInt(req.params.id);
+    const product = products.find(p => p.id === productId);
+    if (product) {
+        res.json(product);
+    } else {
+        res.status(404).json({ error: 'Không tìm thấy sản phẩm' });
+    }
+});
+
+// Serve HTML files
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'views', 'index.html'));
+});
+
+app.get('/cart.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'views', 'cart.html'));
+});
+
+app.get('/checkout.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'views', 'checkout.html'));
+});
+
+app.get('/product-detail.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'views', 'product-detail.html'));
 });
 
 const port = 3000;

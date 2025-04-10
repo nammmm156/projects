@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thanh Toán</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <ul>
+                <li><a href="/">Trang Chủ</a></li>
+                <li><a href="/cart.html">Giỏ Hàng</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <h1>Thanh Toán</h1>
+        <form id="checkout-form" onsubmit="return handleSubmit(event)">
+            <div class="form-group">
+                <label for="name">Họ và tên:</label>
+                <input type="text" id="name" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" required>
+            </div>
+
+            <div class="form-group">
+                <label for="phone">Số điện thoại:</label>
+                <input type="tel" id="phone" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="address">Địa chỉ:</label>
+                <input type="text" id="address" required>
+            </div>
+
+            <div class="form-group">
+                <label for="payment-method">Phương thức thanh toán:</label>
+                <select id="payment-method" required>
+                    <option value="">Chọn phương thức thanh toán</option>
+                    <option value="cod">Thanh toán khi nhận hàng (COD)</option>
+                    <option value="bank">Chuyển khoản ngân hàng (Hãy quét mã qr bằng zalo ^^)</option>
+                </select>
+            </div>
+
+            <div id="bank-transfer-info" style="display: none;">
+                <h3>Thông tin chuyển khoản</h3>
+                <img src="/images/thanhtoan.png" alt="Thông tin chuyển khoản" style="max-width: 100%; margin: 10px 0;">
+            </div>
+
+            <div class="form-group">
+                <label for="note">Ghi chú:</label>
+                <textarea id="note" rows="3"></textarea>
+            </div>
+
+            <div class="order-summary">
+                <h2>Tổng quan đơn hàng</h2>
+                <div id="cart-items"></div>
+                <div class="total">
+                    <span>Tổng cộng:</span>
+                    <span id="total-amount">0đ</span>
+                </div>
+            </div>
+            
+            <button type="submit">Xác nhận Thanh Toán</button>
+        </form>
+    </main>
+
+    <script>
+        async function handleSubmit(event) {
+            event.preventDefault();
+            
+            const formData = {
+                name: document.getElementById('name').value,
+                email: document.getElementById('email').value,
+                phone: document.getElementById('phone').value,
+                address: document.getElementById('address').value,
+                paymentMethod: document.getElementById('payment-method').value,
+                note: document.getElementById('note').value,
+                cartItems: JSON.parse(localStorage.getItem('cart') || '[]'),
+                totalAmount: document.getElementById('total-amount').textContent
+            };
+
+            try {
+                const response = await fetch('/api/submit-info', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('Đơn hàng đã được tiếp nhận thành công!');
+                    localStorage.removeItem('cart'); // Xóa giỏ hàng
+                    window.location.href = '/'; // Chuyển về trang chủ
+                } else {
+                    alert('Có lỗi xảy ra: ' + result.error);
+                }
+            } catch (error) {
+                alert('Có lỗi xảy ra khi gửi đơn hàng');
+                console.error('Lỗi:', error);
+            }
+
+            return false;
+        }
+
+        // Hiển thị thông tin chuyển khoản khi chọn phương thức thanh toán
+        document.getElementById('payment-method').addEventListener('change', function() {
+            const bankInfo = document.getElementById('bank-transfer-info');
+            bankInfo.style.display = this.value === 'bank' ? 'block' : 'none';
+        });
+
+        // Hiển thị giỏ hàng và tổng tiền
+        function displayCart() {
+            const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+            const cartContainer = document.getElementById('cart-items');
+            const totalElement = document.getElementById('total-amount');
+            let total = 0;
+
+            cartContainer.innerHTML = cart.map(item => {
+                total += item.price * item.quantity;
+                return `
+                    <div class="cart-item">
+                        <span>${item.name}</span>
+                        <span>${item.quantity} x ${item.price.toLocaleString()}đ</span>
+                    </div>
+                `;
+            }).join('');
+
+            totalElement.textContent = total.toLocaleString() + 'đ';
+        }
+
+        // Gọi hàm hiển thị giỏ hàng khi trang được tải
+        displayCart();
+    </script>
+</body>
+</html>
