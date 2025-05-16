@@ -75,3 +75,53 @@ Và ở đây ta có một vấn đề đó chính là khi mà ta ấn F5 thì t
 Và ta sẽ dán dns ấy lên google để xem dự án chạy thành công chưa.
 ![Ảnh](https://github.com/nammmm156/projects/blob/master/assets/testwebfinal.png?raw=true)
 Và ở đây có thể thấy dự án của ta đã được chạy thành công.
+
+## Cách 2: Deploy dự án trên on premise 2: Deploy dự án trên on premise.
+
+Đầu tiên thì ta sẽ phải chuẩn bị ít nhất 2 máy chủ để sau đó có thể cấu hình cân bằng tải giữa 2 máy. Ở đây tôi chuẩn bị 2 máy chủ Ubuntu Linux với ip lần lượt là 192.168.6.110 và 192.168.6.111. Để xem được địa chỉ ip thì ta dùng lệnh ```ip a```.
+![Ảnh](https://github.com/nammmm156/projects/blob/master/assets/anh1.png?raw=true) ![Ảnh](https://github.com/nammmm156/projects/blob/master/assets/anh2.png?raw=true)
+Sau đó thì ở 2 máy chủ ta sẽ chạy ở quyền root với lệnh là ```sudo -i```. Sau khi đã chạy với quyền root thì ta sẽ tạo ra thư mục để lưu code, ở đây tôi sẽ đặt là project và sau đó đi vào thư mục đó rồi clone code trên github và làm tương tự ở cả 2 máy.
+```bash
+mkdir /project
+cd /project
+git clone https://github.com/nammmm156/projects.git
+```
+Dự án này chạy bằng Nodejs nên tôi sẽ cần tải những package phù hợp.
+```bash
+apt-get update
+apt install nodejs
+apt install npm
+```
+Lưu ý: Version của các công cụ như npm và nodejs cần phải lớn hơn hoặc bằng với version mà dự án yêu cầu, để check mình đã cài version nào của npm và nodejs thì có thể dùng lệnh 
+```bash
+npm -v
+nodejs -v
+```
+![Ảnh](https://github.com/nammmm156/projects/blob/master/assets/anh3.png?raw=true)
+Sau đó thì ta sẽ dùng lệnh ```npm install``` để tải các dependencies cần thiết cho dự án.
+Khi đã hoàn thành việc cài đặt thì ta sẽ dùng lệnh ```npm start``` để chạy dự án và dự án của chúng ta sẽ chạy ở port 3000.
+![Ảnh](https://github.com/nammmm156/projects/blob/master/assets/anh4.png?raw=true)
+Ở đây chúng ta phải đảm bảo chưa có tiến trình nào chạy ở port 3000 nếu đã có tiến trình chạy ở port 3000 thì dự án sẽ không được khởi chạy thành công. Để kiếm tra thì ta có thể dùng lệnh ```ss -nulpt | grep 3000```
+![Ảnh](https://github.com/nammmm156/projects/blob/master/assets/anh6.png?raw=true)
+Vấn đề ở đây là khi ta chạy lệnh ```npm start``` thì dự án sẽ lưu log trực tiếp ra màn hình và ta sẽ không thể thao tác được nữa. ![Ảnh](anh5) Vì vậy ở đây ta sẽ dùng lệnh ```nohup npm install > server.log 2>&1 &``` Để cho dự án chạy ở dưới nền và log sẽ được đưa vào file server.log. Ta sẽ làm tương tự ở máy chủ còn lại.
+
+Và ở đây khi muốn truy cập trang web thì chúng ta sẽ phải nhập port, như vậy sẽ rất bất tiện và khách hàng chắc chắn sẽ không muốn như vậy. Vì vậy ở đây chúng ta sẽ phải chạy reverse-proxy để có thể map cổng 3000 sang cổng 80 và khi người dùng truy cập http thông thường thì lưu lượng sẽ được chuyển về cổng 3000. Ở dự án này, tôi sẽ sử dụng reverse proxy của Nginx. Đầu tiên sẽ càn tải Nginx bằng lệnh ```apt install nginx -y```, đảm bảo chưa có tiến trình nào chạy ở cổng 80. Sau đó ta sẽ dùng lệnh ```vi /etc/nginx/site-enabled/default```để có thể cấu hình reverse proxy. Ta sẽ cấu hình file như sau:
+```bash
+server {
+    listen 80;
+    server_name 192.168.6.111;
+
+    location / {
+        proxy_pass http://192.168.6.111:3000;
+        proxy_pass http://192.168.6.110:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}
+```
+Ở đây ta sẽ sử dụng server 192.168.6.111 làm reverse-proxy server. Sau đó ta sẽ truy cập ```http://192.168.6.111``` để test xem mọi thứ đã chạy bình thường chưa.
+![Ảnh](https://github.com/nammmm156/projects/blob/master/assets/anh7.png?raw=true)
+Chú ý ở phần ```server_name``` ta sẽ để tên miền của chúng ta, ở đây tôi chưa có tên miền nên sẽ để địa chỉ ip của server.
+
+Vậy là dự án của chúng ta đã triển khai thành công.
