@@ -113,15 +113,39 @@ server {
 
     location / {
         proxy_pass http://192.168.6.111:3000;
-        proxy_pass http://192.168.6.110:3000;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
     }
 }
 ```
-Ở đây ta sẽ sử dụng server 192.168.6.111 làm reverse-proxy server. Sau đó ta sẽ truy cập ```http://192.168.6.111``` để test xem mọi thứ đã chạy bình thường chưa.
+Sau đó ta sẽ truy cập ```http://192.168.6.111``` để test xem mọi thứ đã chạy bình thường chưa.
 ![Ảnh](https://github.com/nammmm156/projects/blob/master/assets/anh7.png?raw=true)
-Chú ý ở phần ```server_name``` ta sẽ để tên miền của chúng ta, ở đây tôi chưa có tên miền nên sẽ để địa chỉ ip của server.
+Chú ý ở phần ```server_name``` ta sẽ để tên miền của chúng ta, ở đây tôi chưa có tên miền nên sẽ để địa chỉ ip của server. Và làm tương tự ở phía bên server 192.168.6.110.
+Nếu muốn chọn server 192.168.6.111 làm reverse proxy server thì ta sẽ phải chỉnh sửa ở file ```/etc/nginx/nginx.conf``` như sau:
+```bash
+http {
+    ...
+    upstream backend_server{
+        server 192.168.6.111:3000;
+        server 192.168.6.110:3000;
+    }
+    include /etc/nginx/site-enabled/*
+}
+```
+Và sau đó chỉnh sửa ở file ```/etc/nginx/site-enabled/default``` như sau:
+```bash
+server {
+    listen 80;
+    server_name 192.168.6.111;
 
+    location / {
+        proxy_pass http://backend_server;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}
+```
+Sau đó check lại xem cấu hình nginx đã chuẩn chưa bằng lệnh ```nginx -t``` và nếu đã báo test successful thì ta sẽ áp dụng cấu hình nginx bằng lệnh ```systemctl reload nginx```.
 Vậy là dự án của chúng ta đã triển khai thành công.
